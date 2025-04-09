@@ -1,0 +1,71 @@
+import 'package:flutter/material.dart';
+import '../models/question_model.dart';
+
+class QuestionProvider with ChangeNotifier {
+  List<QuestionModel> _questions = [];
+
+  List<QuestionModel> get questions => _questions;
+
+  void loadQuestions(List<QuestionModel> questions) {
+    _questions = questions;
+    notifyListeners();
+  }
+
+  List<String> generatePaper({
+    required String subject,
+    required String topic,
+    required int easyPercent,
+    required int mediumPercent,
+    required int hardPercent,
+    required bool isMcq,
+    required int totalQuestions,
+  }) {
+    List<QuestionModel> filtered = _questions.where((q) =>
+    q.subject == subject && q.topic == topic).toList();
+
+    List<QuestionModel> easy = filtered.where((q) => q.difficulty == 'easy').toList();
+    List<QuestionModel> medium = filtered.where((q) => q.difficulty == 'medium').toList();
+    List<QuestionModel> hard = filtered.where((q) => q.difficulty == 'hard').toList();
+
+    int total = totalQuestions;
+
+    int easyCount = (total * easyPercent / 100).round();
+    int mediumCount = (total * mediumPercent / 100).round();
+    int hardCount = total - easyCount - mediumCount;
+
+    easyCount = easyCount > easy.length ? easy.length : easyCount;
+    mediumCount = mediumCount > medium.length ? medium.length : mediumCount;
+    hardCount = hardCount > hard.length ? hard.length : hardCount;
+
+    List<String> finalQuestions = [];
+
+    int questionNumber = 1;
+
+    finalQuestions.addAll(
+        (easy..shuffle())
+            .take(easyCount)
+            .map((q) => isMcq
+            ? 'Q.${questionNumber++}: ${q.question}\n(a) ${q.answer[0]}  (b) ${q.answer[1]}  (c) ${q.answer[2]}\n'
+            : 'Q.${questionNumber++}: ${q.question}\n')
+    );
+
+    finalQuestions.addAll(
+        (medium..shuffle())
+            .take(mediumCount)
+            .map((q) => isMcq
+            ? 'Q.${questionNumber++}: ${q.question}\n(a) ${q.answer[0]}  (b) ${q.answer[1]}  (c) ${q.answer[2]}\n'
+            : 'Q.${questionNumber++}: ${q.question}\n')
+    );
+
+    finalQuestions.addAll(
+        (hard..shuffle())
+            .take(hardCount)
+            .map((q) => isMcq
+            ? 'Q.${questionNumber++}: ${q.question}\n(a) ${q.answer[0]}  (b) ${q.answer[1]}  (c) ${q.answer[2]}\n'
+            : 'Q.${questionNumber++}: ${q.question}\n')
+    );
+
+    return finalQuestions;
+  }
+
+}
